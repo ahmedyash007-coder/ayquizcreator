@@ -167,8 +167,8 @@ from kivy.core.window import Window
 
 from kivy.storage.jsonstore import JsonStore
 
-from firebase_admin import credentials
-from firebase_admin import firestore
+# from firebase_admin import credentials
+# from firebase_admin import firestore
 
 # from moviepy.editor import (
 #     VideoClip,
