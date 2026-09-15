@@ -33,7 +33,7 @@ presplash.filename = %(source.dir)s/ahmed_logo13.png
 android.permissions = INTERNET
 android.archs = arm64-v8a,armeabi-v7a
 android.api = 35
-android.minapi = 23
+android.minapi = 24
 android.accept_sdk_license = True
 
 [buildozer]
