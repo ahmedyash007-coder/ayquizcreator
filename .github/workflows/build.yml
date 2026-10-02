@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout project
@@ -31,7 +31,8 @@ jobs:
           sudo apt-get install -y \
             git zip unzip autoconf libtool pkg-config \
             zlib1g-dev libncurses5-dev libncursesw5-dev \
-            cmake libffi-dev libssl-dev automake
+            libtinfo5 cmake libffi-dev libssl-dev \
+            automake libltdl-dev
 
       - name: Install Buildozer
         run: |
