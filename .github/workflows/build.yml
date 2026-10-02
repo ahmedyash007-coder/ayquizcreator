@@ -41,17 +41,29 @@ jobs:
           pip install cython==0.29.34
 
       - name: Build APK
+        shell: bash
         run: |
-          buildozer -v android debug
-      
+          set +e
+          buildozer -v android debug > build.log 2>&1
+          BUILD_EXIT=$?
+
+          echo "Buildozer exit code: $BUILD_EXIT"
+          echo "===== LAST 300 LINES OF BUILD LOG ====="
+
+          tail -n 300 build.log || true
+
+          exit $BUILD_EXIT
+
       - name: Upload build log
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: build-log
           path: build.log
+          if-no-files-found: error
 
       - name: Upload APK
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: AY-QUIZS-APK
