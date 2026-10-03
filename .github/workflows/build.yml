@@ -8,69 +8,105 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+
+    runs-on: ubuntu-latest
+
+    container:
+      image: kivy/buildozer:latest
 
     steps:
+
       - name: Checkout project
         uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Setup Java
-        uses: actions/setup-java@v5
-        with:
-          distribution: temurin
-          java-version: "17"
-
-      - name: Install system dependencies
+      - name: Check Python
         run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            git zip unzip autoconf libtool pkg-config \
-            zlib1g-dev libncurses5-dev libncursesw5-dev \
-            libtinfo5 cmake libffi-dev libssl-dev \
-            automake libltdl-dev
+          python3 --version
 
-      - name: Install Buildozer
+      - name: Check Buildozer
         run: |
-          python -m pip install --upgrade pip
-          pip install buildozer
-          pip install cython==0.29.34
+          buildozer --version
+
+      - name: Check project files
+        run: |
+          echo "========================================"
+          echo "PROJECT FILES"
+          echo "========================================"
+          ls -la
+
+          echo ""
+          echo "========================================"
+          echo "BUILDOZER SPEC"
+          echo "========================================"
+
+          cat buildozer.spec
+
+      - name: Clean old Buildozer files
+        run: |
+          rm -rf .buildozer
+          rm -rf bin
 
       - name: Build APK
         shell: bash
         run: |
+
           set +e
 
-          buildozer -v android debug > build.log 2>&1
+          echo "========================================"
+          echo "STARTING AY QUIZS APK BUILD"
+          echo "========================================"
 
-          BUILD_EXIT=$?
+          buildozer -v android debug 2>&1 | tee build.log
+
+          BUILD_EXIT=${PIPESTATUS[0]}
 
           echo ""
           echo "========================================"
+          echo "BUILD FINISHED"
           echo "BUILD EXIT CODE: $BUILD_EXIT"
           echo "========================================"
-          echo ""
 
-          echo "===== LAST 100 LINES ====="
-          tail -n 100 build.log || true
+          echo ""
+          echo "========================================"
+          echo "SEARCHING FOR ERRORS"
+          echo "========================================"
+
+          grep -i -E \
+            "error:|error |exception|command failed|failed:" \
+            build.log | tail -n 100 || true
+
+          echo ""
+          echo "========================================"
+          echo "LAST 150 LINES"
+          echo "========================================"
+
+          tail -n 150 build.log || true
 
           exit $BUILD_EXIT
 
-      - name: Upload build log
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-log
-          path: build.log
-          if-no-files-found: warn
+      - name: Show APK files
+        if: success()
+        run: |
+          echo "========================================"
+          echo "APK FILES"
+          echo "========================================"
+
+          ls -lh bin/
 
       - name: Upload APK
         if: success()
         uses: actions/upload-artifact@v4
+
         with:
           name: AY-QUIZS-APK
           path: bin/*.apk
+          if-no-files-found: error
+
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v4
+
+        with:
+          name: AY-QUIZS-build-log
+          path: build.log
+          if-no-files-found: warn
