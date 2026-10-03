@@ -9,23 +9,80 @@ on:
 jobs:
   build:
 
-    runs-on: ubuntu-latest
-
-    container:
-      image: kivy/buildozer:latest
+    runs-on: ubuntu-22.04
 
     steps:
 
+      # ========================================
+      # CHECKOUT PROJECT
+      # ========================================
       - name: Checkout project
         uses: actions/checkout@v4
 
       # ========================================
-      # CHECK CONTAINER USER
+      # SETUP PYTHON
       # ========================================
-      - name: Check container user
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      # ========================================
+      # SETUP JAVA
+      # ========================================
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      # ========================================
+      # INSTALL SYSTEM DEPENDENCIES
+      # ========================================
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+
+          sudo apt-get install -y \
+            git \
+            zip \
+            unzip \
+            autoconf \
+            libtool \
+            pkg-config \
+            zlib1g-dev \
+            libncurses5-dev \
+            libncursesw5-dev \
+            libtinfo5 \
+            cmake \
+            libffi-dev \
+            libssl-dev \
+            automake \
+            libltdl-dev
+
+      # ========================================
+      # INSTALL BUILDOZER
+      # ========================================
+      - name: Install Buildozer
+        run: |
+          python -m pip install --upgrade pip
+          pip install buildozer
+          pip install "cython==0.29.34"
+
+          echo ""
+          echo "========================================"
+          echo "BUILDOZER VERSION"
+          echo "========================================"
+
+          buildozer --version
+
+      # ========================================
+      # CHECK USER
+      # ========================================
+      - name: Check runner user
         run: |
           echo "========================================"
-          echo "CHECKING CONTAINER USER"
+          echo "CHECKING RUNNER USER"
           echo "========================================"
 
           echo ""
@@ -36,42 +93,15 @@ jobs:
           echo "ID:"
           id
 
-          echo ""
-          echo "USERS:"
-          cat /etc/passwd | grep -E "user|buildozer" || true
-
-          echo ""
-          echo "HOME:"
-          echo "$HOME"
-
       # ========================================
-      # CHECK PYTHON
-      # ========================================
-      - name: Check Python
-        run: |
-          echo "========================================"
-          echo "PYTHON VERSION"
-          echo "========================================"
-          python3 --version
-
-      # ========================================
-      # CHECK BUILDOZER
-      # ========================================
-      - name: Check Buildozer
-        run: |
-          echo "========================================"
-          echo "BUILDOZER VERSION"
-          echo "========================================"
-          buildozer --version
-
-      # ========================================
-      # CHECK PROJECT FILES
+      # CHECK PROJECT
       # ========================================
       - name: Check project files
         run: |
           echo "========================================"
           echo "PROJECT FILES"
           echo "========================================"
+
           ls -la
 
           echo ""
@@ -82,7 +112,7 @@ jobs:
           cat buildozer.spec
 
       # ========================================
-      # CLEAN OLD BUILD FILES
+      # CLEAN OLD BUILD
       # ========================================
       - name: Clean old Buildozer files
         run: |
