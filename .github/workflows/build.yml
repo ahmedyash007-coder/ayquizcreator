@@ -44,13 +44,19 @@ jobs:
         shell: bash
         run: |
           set +e
+
           buildozer -v android debug > build.log 2>&1
+
           BUILD_EXIT=$?
 
-          echo "Buildozer exit code: $BUILD_EXIT"
-          echo "===== LAST 300 LINES OF BUILD LOG ====="
+          echo ""
+          echo "========================================"
+          echo "BUILD EXIT CODE: $BUILD_EXIT"
+          echo "========================================"
+          echo ""
 
-          tail -n 300 build.log || true
+          echo "===== LAST 100 LINES ====="
+          tail -n 100 build.log || true
 
           exit $BUILD_EXIT
 
@@ -60,7 +66,7 @@ jobs:
         with:
           name: build-log
           path: build.log
-          if-no-files-found: error
+          if-no-files-found: warn
 
       - name: Upload APK
         if: success()
