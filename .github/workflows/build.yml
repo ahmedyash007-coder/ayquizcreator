@@ -19,14 +19,54 @@ jobs:
       - name: Checkout project
         uses: actions/checkout@v4
 
+      # ========================================
+      # CHECK CONTAINER USER
+      # ========================================
+      - name: Check container user
+        run: |
+          echo "========================================"
+          echo "CHECKING CONTAINER USER"
+          echo "========================================"
+
+          echo ""
+          echo "WHOAMI:"
+          whoami
+
+          echo ""
+          echo "ID:"
+          id
+
+          echo ""
+          echo "USERS:"
+          cat /etc/passwd | grep -E "user|buildozer" || true
+
+          echo ""
+          echo "HOME:"
+          echo "$HOME"
+
+      # ========================================
+      # CHECK PYTHON
+      # ========================================
       - name: Check Python
         run: |
+          echo "========================================"
+          echo "PYTHON VERSION"
+          echo "========================================"
           python3 --version
 
+      # ========================================
+      # CHECK BUILDOZER
+      # ========================================
       - name: Check Buildozer
         run: |
+          echo "========================================"
+          echo "BUILDOZER VERSION"
+          echo "========================================"
           buildozer --version
 
+      # ========================================
+      # CHECK PROJECT FILES
+      # ========================================
       - name: Check project files
         run: |
           echo "========================================"
@@ -41,20 +81,44 @@ jobs:
 
           cat buildozer.spec
 
+      # ========================================
+      # CLEAN OLD BUILD FILES
+      # ========================================
       - name: Clean old Buildozer files
         run: |
+          echo "========================================"
+          echo "CLEANING OLD BUILD FILES"
+          echo "========================================"
+
           rm -rf .buildozer
           rm -rf bin
+          rm -rf build
+          rm -rf dist
 
+          echo ""
+          echo "Clean complete."
+
+      # ========================================
+      # BUILD APK
+      # ========================================
       - name: Build APK
         shell: bash
         run: |
-
           set +e
 
           echo "========================================"
           echo "STARTING AY QUIZS APK BUILD"
           echo "========================================"
+
+          echo ""
+          echo "CURRENT USER:"
+          whoami
+
+          echo ""
+          echo "CURRENT ID:"
+          id
+
+          echo ""
 
           buildozer -v android debug 2>&1 | tee build.log
 
@@ -84,6 +148,9 @@ jobs:
 
           exit $BUILD_EXIT
 
+      # ========================================
+      # SHOW APK
+      # ========================================
       - name: Show APK files
         if: success()
         run: |
@@ -93,19 +160,23 @@ jobs:
 
           ls -lh bin/
 
+      # ========================================
+      # UPLOAD APK
+      # ========================================
       - name: Upload APK
         if: success()
         uses: actions/upload-artifact@v4
-
         with:
           name: AY-QUIZS-APK
           path: bin/*.apk
           if-no-files-found: error
 
+      # ========================================
+      # UPLOAD BUILD LOG
+      # ========================================
       - name: Upload build log
         if: always()
         uses: actions/upload-artifact@v4
-
         with:
           name: AY-QUIZS-build-log
           path: build.log
